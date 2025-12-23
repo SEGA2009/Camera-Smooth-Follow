@@ -1,3 +1,7 @@
+using UnityEngine;
+/// <summary>
+/// put on the FirstContollerObject==>PlayerCapsule
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
     [Header("Move")]
@@ -76,3 +80,4 @@ public class PlayerController : MonoBehaviour
         }
     }
 }
+
