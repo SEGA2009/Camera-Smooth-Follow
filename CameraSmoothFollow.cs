@@ -1,83 +1,33 @@
 using UnityEngine;
 /// <summary>
-/// put on the FirstContollerObject==>PlayerCapsule
+/// put on camera
 /// </summary>
-public class PlayerController : MonoBehaviour
+
+public class CameraSmoothFollow : MonoBehaviour
 {
-    [Header("Move")]
-    public bool CanMove = true;
-    public float moveSpeed = 5f;
-    public float gravity = -9.8f;
-    public float jumpForce = 5f;
+    public Transform target;
+    float smooth = 0.3f;
+    float yVelocity = 0.0f;
+    float xVelocity = 0.0f;
 
-    [Header("Mouse Look")]
-    public float mouseSensitivity = 200f;
-    public Transform playerCamera;
-
-    float xRotation = 0f;
-    float yVelocity = 0f;
-
-    CharacterController controller;
-
-    void Start()
-    {
-        controller = GetComponent<CharacterController>();
-
-        // 鎖定滑鼠在畫面中心
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
+    public float smoothTime = 0.3F;
+    private Vector3 velocity = Vector3.zero;
 
     void Update()
     {
-        MouseLook();
-        Move();
-        Jump();
-    }
+        //smooth move(camera delay movement)
+        if (target.position != transform.position)
+        { 
+            Vector3 targetPosition = target.TransformPoint(new Vector3(0, 0, 0));
+            transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
+        }
 
-    void MouseLook()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-
-        // Camera 上下（Pitch）
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -80f, 80f);
-        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Player 左右（Yaw）
-        transform.Rotate(Vector3.up * mouseX);
-    }
-
-    void Move()
-    {
-        if (!CanMove) return;
-
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
-
-        Vector3 move = transform.right * h + transform.forward * v;
-
-        // 重力
-        if (controller.isGrounded && yVelocity < 0)
-            yVelocity = -2f; // 貼地用，避免浮起
-
-        yVelocity += gravity * Time.deltaTime;
-
-        Vector3 velocity = move * moveSpeed;
-        velocity.y = yVelocity;
-
-        controller.Move(velocity * Time.deltaTime);
-    }
-
-    void Jump()
-    {
-        if (!CanMove) return;
-
-        if (controller.isGrounded && Input.GetKeyDown(KeyCode.Space))
+        //smooth rotate(camera delay rotation)
+        if (target.rotation != transform.rotation)
         {
-            yVelocity = jumpForce;
+            float yAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, target.eulerAngles.y, ref yVelocity, smooth);
+            float xAngle = Mathf.SmoothDampAngle(transform.eulerAngles.x, target.eulerAngles.x, ref xVelocity, smooth);
+            transform.rotation = Quaternion.Euler(xAngle, yAngle, 0);
         }
     }
-}
-
+  }
